@@ -3,9 +3,13 @@ import './style.css'
 import { RECIPE_TEMPLATES } from './data/recipe-templates'
 import { RecipeEngine, type ProcessedRecipe } from './lib/recipe-engine'
 import { RecipeLoader } from './lib/recipe-loader'
+import { PackagingVisualizer } from './lib/packaging-visualizer'
 
 // Global state for Supabase recipes
 let supabaseRecipes: any[] = []
+
+// Three.js visualizer instance
+let packagingViz: PackagingVisualizer | null = null
 
 // Simple game state with Valtio
 export const gameState = proxy({
@@ -17,7 +21,11 @@ export const gameState = proxy({
   pantryIngredients: new Map<string, number>(),
   counterIngredients: new Map<string, number>(),
   packages: [],
-  revenue: 100 // Start with some money
+  revenue: 100, // Start with some money
+  packagingState: {
+    piecesPerItem: 12,
+    piecesPerParcel: 4
+  }
 })
 
 // Screen components
@@ -180,31 +188,76 @@ const screens = {
     `
   },
   
-  'packaging': () => `
-    <div class="ui-panel">
-      <h2>📦 Packaging</h2>
-      <p>Decide how to package your baked goods.</p>
-      
-      <div class="packaging-controls">
-        <h3>You made: 12 cookies</h3>
+  'packaging': () => {
+    const recipe = gameState.selectedRecipe
+    const totalItems = recipe ? Math.round(recipe.servings / 12) * 2 : 2 // Simplified: assume 2 cookies made
+    const currentPiecesPerItem = gameState.packagingState?.piecesPerItem || 12
+    const currentPiecesPerParcel = gameState.packagingState?.piecesPerParcel || 4
+    
+    const totalPieces = totalItems * currentPiecesPerItem
+    const totalParcels = Math.floor(totalPieces / currentPiecesPerParcel)
+    const remainder = totalPieces % currentPiecesPerParcel
+    
+    return `
+      <div class="ui-panel">
+        <h2>📦 Packaging Mathematics</h2>
+        <p>Watch the math come alive as items are divided and packaged!</p>
         
-        <div class="math-equation">
-          <p>12 cookies ÷ 4 per package = 3 packages</p>
+        <div class="packaging-stats">
+          <div class="stat-item">
+            <span class="stat-label">Batch:</span>
+            <span class="stat-value">${totalItems} ${totalItems === 1 ? 'item' : 'items'}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Total pieces:</span>
+            <span class="stat-value">${totalPieces}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Parcels:</span>
+            <span class="stat-value">${totalParcels}</span>
+          </div>
+          ${remainder > 0 ? `<div class="stat-item remainder"><span class="stat-label">Remainder:</span><span class="stat-value">${remainder}</span></div>` : ''}
         </div>
         
-        <div class="slider-group">
-          <label>Cookies per package:</label>
-          <input type="range" min="1" max="12" value="4" />
-          <span>4</span>
+        <div class="packaging-controls">
+          <div class="slider-group">
+            <label>Pieces per item:</label>
+            <input type="range" min="6" max="24" value="${currentPiecesPerItem}" 
+                   onchange="updatePiecesPerItem(this.value)" />
+            <span id="pieces-per-item-value">${currentPiecesPerItem}</span>
+          </div>
+          
+          <div class="slider-group">
+            <label>Pieces per parcel:</label>
+            <input type="range" min="2" max="12" value="${currentPiecesPerParcel}" 
+                   onchange="updatePiecesPerParcel(this.value)" />
+            <span id="pieces-per-parcel-value">${currentPiecesPerParcel}</span>
+          </div>
+        </div>
+        
+        <div class="math-equations">
+          <div class="equation">
+            <strong>Step 1:</strong> ${totalItems} items × ${currentPiecesPerItem} pieces/item = ${totalPieces} total pieces
+          </div>
+          <div class="equation">
+            <strong>Step 2:</strong> ${totalPieces} pieces ÷ ${currentPiecesPerParcel} pieces/parcel = ${totalParcels} parcels${remainder > 0 ? ` + ${remainder} remainder` : ''}
+          </div>
+        </div>
+        
+        <div class="animation-controls">
+          <button onclick="showBatch()" class="btn-secondary">1. Show Batch</button>
+          <button onclick="animateDivision()" class="btn-secondary">2. Divide into Pieces</button>
+          <button onclick="animatePackaging()" class="btn-secondary">3. Package Parcels</button>
+          <button onclick="resetPackagingViz()" class="btn-secondary">🔄 Reset</button>
+        </div>
+        
+        <div class="button-group">
+          <button onclick="goBack()">← Back</button>
+          <button onclick="finishPackaging()" class="btn-primary">Finish Packaging →</button>
         </div>
       </div>
-      
-      <div class="button-group">
-        <button onclick="goBack()">← Back</button>
-        <button onclick="finishPackaging()" class="btn-primary">Finish Packaging →</button>
-      </div>
-    </div>
-  `,
+    `
+  },
   
   'store': () => `
     <div class="ui-panel">
@@ -273,6 +326,14 @@ declare global {
     goToRecipes: () => void
     goBack: () => void
     loadSupabaseRecipes: () => void
+    
+    // Packaging visualization functions
+    updatePiecesPerItem: (value: string) => void
+    updatePiecesPerParcel: (value: string) => void
+    showBatch: () => void
+    animateDivision: () => void
+    animatePackaging: () => void
+    resetPackagingViz: () => void
   }
 }
 
@@ -357,6 +418,59 @@ window.transferIngredient = (ingredient: string, amount: number = 1) => {
 window.proceedToPackaging = () => {
   gameState.currentScreen = 'packaging'
   render()
+  
+  // Initialize Three.js visualization when entering packaging
+  setTimeout(() => {
+    try {
+      if (packagingViz) {
+        packagingViz.destroy()
+      }
+      packagingViz = new PackagingVisualizer('three-container')
+    } catch (error) {
+      console.error('Failed to initialize packaging visualization:', error)
+    }
+  }, 100) // Small delay to ensure DOM is updated
+}
+
+// Packaging visualization functions
+window.updatePiecesPerItem = (value: string) => {
+  gameState.packagingState.piecesPerItem = parseInt(value)
+  document.getElementById('pieces-per-item-value')!.textContent = value
+  render()
+}
+
+window.updatePiecesPerParcel = (value: string) => {
+  gameState.packagingState.piecesPerParcel = parseInt(value)
+  document.getElementById('pieces-per-parcel-value')!.textContent = value
+  render()
+}
+
+window.showBatch = () => {
+  if (!packagingViz) return
+  const recipe = gameState.selectedRecipe
+  const totalItems = recipe ? Math.round(recipe.servings / 12) * 2 : 2
+  packagingViz.showBatch(totalItems)
+}
+
+window.animateDivision = async () => {
+  if (!packagingViz) return
+  const recipe = gameState.selectedRecipe
+  const totalItems = recipe ? Math.round(recipe.servings / 12) * 2 : 2
+  await packagingViz.animateDivision(totalItems, gameState.packagingState.piecesPerItem)
+}
+
+window.animatePackaging = async () => {
+  if (!packagingViz) return
+  const recipe = gameState.selectedRecipe
+  const totalItems = recipe ? Math.round(recipe.servings / 12) * 2 : 2
+  const totalPieces = totalItems * gameState.packagingState.piecesPerItem
+  await packagingViz.animatePackaging(totalPieces, gameState.packagingState.piecesPerParcel)
+}
+
+window.resetPackagingViz = () => {
+  if (packagingViz) {
+    packagingViz.clearVisualization()
+  }
 }
 
 window.finishPackaging = () => {

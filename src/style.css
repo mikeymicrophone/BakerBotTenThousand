@@ -237,20 +237,76 @@ body {
 }
 
 /* Packaging Controls */
+.packaging-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.stat-item {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 8px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.stat-item.remainder {
+  background: rgba(255, 152, 0, 0.2);
+  border: 1px solid #ff9800;
+  color: #ff9800;
+}
+
+.stat-label {
+  display: block;
+  font-size: 11px;
+  color: #ccc;
+  margin-bottom: 2px;
+}
+
+.stat-value {
+  display: block;
+  font-weight: bold;
+  font-size: 16px;
+}
+
 .packaging-controls {
   margin: 20px 0;
 }
 
-.math-equation {
-  background: rgba(255, 235, 59, 0.2);
+.math-equations {
+  background: rgba(255, 235, 59, 0.1);
   border: 1px solid #ffeb3b;
   border-radius: 6px;
   padding: 15px;
   margin: 15px 0;
-  text-align: center;
+}
+
+.equation {
   font-family: monospace;
-  font-size: 16px;
+  font-size: 14px;
   color: #ffeb3b;
+  margin: 8px 0;
+  line-height: 1.4;
+}
+
+.animation-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 15px 0;
+  padding: 15px;
+  background: rgba(0, 122, 204, 0.1);
+  border: 1px solid #007acc;
+  border-radius: 6px;
+}
+
+.animation-controls button {
+  flex: 1;
+  min-width: 120px;
+  padding: 8px 12px;
+  font-size: 12px;
 }
 
 .slider-group {
