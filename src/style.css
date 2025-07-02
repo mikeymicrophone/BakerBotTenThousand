@@ -1,0 +1,243 @@
+/* Base styles preserving BakeWatt design system */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: #1a1a1a;
+  color: white;
+  overflow: hidden;
+}
+
+#app {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+#three-container {
+  width: 100%;
+  height: 100%;
+  background: #1a1a1a;
+}
+
+#ui-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* UI Panel System (preserved from BakeWatt) */
+.ui-panel {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 400px;
+  max-height: calc(100vh - 40px);
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 12px;
+  padding: 20px;
+  pointer-events: auto;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow-y: auto;
+}
+
+/* Recipe Grid */
+.recipe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.recipe-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 15px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.recipe-card:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #007acc;
+  transform: translateY(-2px);
+}
+
+.recipe-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.recipe-card h3 {
+  margin: 0 0 5px 0;
+  font-size: 16px;
+}
+
+.recipe-card p {
+  margin: 0;
+  font-size: 12px;
+  color: #ccc;
+}
+
+/* Ingredients and Steps */
+.ingredients-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.ingredients-list li {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px 12px;
+  margin: 5px 0;
+  border-radius: 6px;
+  border-left: 3px solid #007acc;
+}
+
+.cooking-step {
+  margin: 20px 0;
+}
+
+.ingredient-zones {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.ingredient-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Packaging Controls */
+.packaging-controls {
+  margin: 20px 0;
+}
+
+.math-equation {
+  background: rgba(255, 235, 59, 0.2);
+  border: 1px solid #ffeb3b;
+  border-radius: 6px;
+  padding: 15px;
+  margin: 15px 0;
+  text-align: center;
+  font-family: monospace;
+  font-size: 16px;
+  color: #ffeb3b;
+}
+
+.slider-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.slider-group input[type="range"] {
+  flex: 1;
+  height: 6px;
+  background: #333;
+  border-radius: 3px;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.slider-group input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  background: #007acc;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* Store and Supplier */
+.store-inventory, .supplier-inventory {
+  margin: 20px 0;
+}
+
+.store-item, .supplier-item {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 15px;
+  margin: 10px 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.store-stats {
+  background: rgba(76, 175, 80, 0.2);
+  border: 1px solid #4caf50;
+  border-radius: 6px;
+  padding: 15px;
+  margin: 15px 0;
+  text-align: center;
+  color: #4caf50;
+  font-weight: bold;
+}
+
+/* Button System (preserved from BakeWatt) */
+.button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  justify-content: space-between;
+}
+
+button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #666;
+  color: white;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  background: #555;
+}
+
+.btn-primary {
+  background: #007acc !important;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #005a9e !important;
+}
+
+.btn-sell {
+  background: #4caf50 !important;
+  color: white;
+}
+
+.btn-sell:hover {
+  background: #1e7e34 !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ui-panel {
+    width: calc(100vw - 40px);
+    max-width: none;
+  }
+  
+  .recipe-grid {
+    grid-template-columns: 1fr;
+  }
+}
