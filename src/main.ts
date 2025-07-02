@@ -2,6 +2,10 @@ import { proxy } from 'valtio'
 import './style.css'
 import { RECIPE_TEMPLATES } from './data/recipe-templates'
 import { RecipeEngine, type ProcessedRecipe } from './lib/recipe-engine'
+import { RecipeLoader } from './lib/recipe-loader'
+
+// Global state for Supabase recipes
+let supabaseRecipes: any[] = []
 
 // Simple game state with Valtio
 export const gameState = proxy({
@@ -19,12 +23,16 @@ export const gameState = proxy({
 // Screen components
 const screens = {
   'recipe-index': () => {
-    const recipes = Object.values(RECIPE_TEMPLATES)
+    // Use Supabase recipes if available, fallback to hardcoded
+    const recipes = supabaseRecipes.length > 0 ? supabaseRecipes : Object.values(RECIPE_TEMPLATES)
     
     return `
       <div class="ui-panel">
         <h2>📚 Recipe Collection</h2>
         <p>Choose a recipe to start baking!</p>
+        <small style="color: #ffc107; margin-bottom: 15px; display: block;">
+          ${supabaseRecipes.length > 0 ? '🌐 Loaded from Supabase' : '💾 Using local data'}
+        </small>
         
         <div class="recipe-grid">
           ${recipes.map(recipe => `
@@ -35,6 +43,12 @@ const screens = {
               <small>${recipe.description}</small>
             </div>
           `).join('')}
+        </div>
+        
+        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+          <button onclick="loadSupabaseRecipes()" style="font-size: 12px; padding: 8px 12px;">
+            🔄 Reload from Supabase
+          </button>
         </div>
       </div>
     `
@@ -258,23 +272,59 @@ declare global {
     goToSupplier: () => void
     goToRecipes: () => void
     goBack: () => void
+    loadSupabaseRecipes: () => void
   }
 }
 
-window.selectRecipe = (recipeId: string) => {
-  const template = RECIPE_TEMPLATES[recipeId.toUpperCase().replace('-', '_')]
+// Load Supabase recipes
+window.loadSupabaseRecipes = async () => {
+  try {
+    console.log('Loading recipes from Supabase...')
+    const recipes = await RecipeLoader.loadRecipeTemplates()
+    supabaseRecipes = recipes
+    console.log(`Loaded ${recipes.length} recipes from Supabase`)
+    render()
+  } catch (error) {
+    console.error('Failed to load recipes from Supabase:', error)
+  }
+}
+
+window.selectRecipe = async (recipeId: string) => {
+  // Try to find recipe in Supabase data first
+  let template = supabaseRecipes.find(r => r.id === recipeId)
+  
+  // Fallback to hardcoded recipes
+  if (!template) {
+    template = RECIPE_TEMPLATES[recipeId.toUpperCase().replace('-', '_')]
+  }
+  
+  // If still not found, try loading from Supabase
+  if (!template) {
+    template = await RecipeLoader.loadFullRecipe(recipeId)
+  }
+  
   if (template) {
     gameState.selectedRecipeId = recipeId
     gameState.selectedRecipe = RecipeEngine.processRecipe(template, gameState.scaleFactor)
     gameState.currentStepIndex = 0
     gameState.currentScreen = 'recipe-detail'
     render()
+  } else {
+    console.error('Recipe not found:', recipeId)
   }
 }
 
-window.scaleRecipe = (factor: number) => {
+window.scaleRecipe = async (factor: number) => {
   if (gameState.selectedRecipeId) {
-    const template = RECIPE_TEMPLATES[gameState.selectedRecipeId.toUpperCase().replace('-', '_')]
+    // Find current template from Supabase or fallback
+    let template = supabaseRecipes.find(r => r.id === gameState.selectedRecipeId)
+    if (!template) {
+      template = RECIPE_TEMPLATES[gameState.selectedRecipeId.toUpperCase().replace('-', '_')]
+    }
+    if (!template) {
+      template = await RecipeLoader.loadFullRecipe(gameState.selectedRecipeId)
+    }
+    
     if (template) {
       gameState.scaleFactor = Math.max(0.5, Math.min(4, gameState.scaleFactor * factor))
       gameState.selectedRecipe = RecipeEngine.processRecipe(template, gameState.scaleFactor)
@@ -358,4 +408,19 @@ function render() {
 }
 
 // Initialize app
-render()
+async function initializeApp() {
+  // Try to load recipes from Supabase on startup
+  try {
+    const recipes = await RecipeLoader.loadRecipeTemplates()
+    if (recipes.length > 0) {
+      supabaseRecipes = recipes
+      console.log(`✅ Loaded ${recipes.length} recipes from Supabase`)
+    }
+  } catch (error) {
+    console.log('📦 Using local recipes (Supabase unavailable)')
+  }
+  
+  render()
+}
+
+initializeApp()
