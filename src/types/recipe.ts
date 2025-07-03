@@ -12,6 +12,7 @@ export interface Ingredient {
   name: string
   unit: string
   icon: string
+  costPerUnit?: number
 }
 
 export interface FlexibleIngredient {
@@ -53,4 +54,6 @@ export interface RecipeTemplate {
   estimatedTime: number
   steps: RecipeStep[]
   categories: string[]
+  unstartable?: boolean
+  notes?: string
 }

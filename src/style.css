@@ -401,6 +401,65 @@ button:hover {
   background: #1e7e34 !important;
 }
 
+.recipe-card.unstartable {
+  cursor: not-allowed;
+  opacity: 0.6;
+  position: relative; /* Needed for banner positioning */
+  overflow: hidden; /* Ensures banner respects rounded corners */
+}
+
+.recipe-card.unstartable:hover {
+  transform: none;
+  border-color: transparent;
+}
+
+.unstartable-banner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-15deg);
+  background-color: rgba(199, 0, 0, 0.8);
+  color: white;
+  padding: 8px 120px; /* Wide padding to stretch across the card */
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 14px;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none; /* Don't intercept clicks */
+}
+
+/* Cost Panel */
+.cost-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  margin-bottom: 15px;
+}
+
+.total-cost {
+  font-size: 18px;
+  font-weight: bold;
+  color: #4caf50;
+}
+
+.ingredient-costs {
+  list-style: none;
+  padding: 0;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.ingredient-costs li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .ui-panel {

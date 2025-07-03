@@ -1,10 +1,13 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "useDefineForClassFields": true,
+    "useDefineForClassFields": false,
     "module": "ESNext",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
+
+    /* Decorators for Lit components */
+    "experimentalDecorators": true,
 
     /* Bundler mode */
     "moduleResolution": "bundler",

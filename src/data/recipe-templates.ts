@@ -1,6 +1,7 @@
 // Recipe templates with parameter injection (BakeWatt innovation preserved)
 import type { RecipeTemplate, FlexibleIngredient } from '../types/recipe'
 import { INGREDIENTS } from './ingredients'
+import { UNSTARTABLE_RECIPE } from './unstartable-recipe'
 
 // Helper function to create flexible ingredients
 function createIngredient(ingredient: typeof INGREDIENTS[keyof typeof INGREDIENTS], amount: number | { min: number, max: number, recommended: number }, hint?: string): FlexibleIngredient {
@@ -257,5 +258,7 @@ export const RECIPE_TEMPLATES: Record<string, RecipeTemplate> = {
         }
       }
     ]
-  }
+  },
+
+  UNSTARTABLE_CROISSANT: UNSTARTABLE_RECIPE
 }
